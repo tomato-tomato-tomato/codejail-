@@ -1,0 +1,63 @@
+
+    #Now we want to explore what lag is associated with the greatest absolute correlation: this function will allow us to do that. 
+      find_max_abs_lag <- function(ccf_results) {
+        max_abs_lag <- data.frame(Name = character(),
+                                  Max_Abs_Value = numeric(),
+                                  Lag_Value = integer(),
+                                  stringsAsFactors = FALSE)
+        
+        for (name in names(ccf_results)) {
+          ccf_res <- ccf_results[[name]]
+          if (length(ccf_res) == 1 && ccf_res[[1]] == "file not found") {
+            max_abs_lag <- rbind(max_abs_lag, data.frame(Name = name,
+                                                         Max_Abs_Value = NA,
+                                                         Lag_Value = NA,
+                                                         stringsAsFactors = FALSE))
+          } else {
+            if (length(ccf_res$acf) == 0 || length(ccf_res$lag) == 0) {
+              max_abs_lag <- rbind(max_abs_lag, data.frame(Name = name,
+                                                           Max_Abs_Value = NA,
+                                                           Lag_Value = NA,
+                                                           stringsAsFactors = FALSE))
+            } else {
+              max_abs_index <- which.max(abs(ccf_res$acf))
+              if (length(max_abs_index) == 0) {
+                max_abs_lag <- rbind(max_abs_lag, data.frame(Name = name,
+                                                             Max_Abs_Value = NA,
+                                                             Lag_Value = NA,
+                                                             stringsAsFactors = FALSE))
+              } else {
+                max_abs_value <- ccf_res$acf[max_abs_index]
+                lag_value <- ccf_res$lag[max_abs_index]
+                
+                max_abs_lag <- rbind(max_abs_lag, data.frame(Name = name,
+                                                             Max_Abs_Value = max_abs_value,
+                                                             Lag_Value = lag_value,
+                                                             stringsAsFactors = FALSE))
+              }
+            }
+          }
+        }
+        
+        return(max_abs_lag)
+      }
+      
+      #now we can call the find_max_abs_lag function to get the maximum absolute correlation values and their associated lag values for each entry:
+      # Call the find_max_abs_lag function for ccf_happiness_results
+      max_correlation_lag_happiness_df <- find_max_abs_lag(ccf_happiness_results) %>%
+        separate(Name, c("pid", "emotion", "event"), sep = "_", remove = TRUE)
+      
+      # Call the find_max_abs_lag function for ccf_sadness_results
+      max_correlation_lag_sadness_df <- find_max_abs_lag(ccf_sadness_results) %>%
+        separate(Name, c("pid", "emotion", "event"), sep = "_", remove = TRUE)
+
+      
+      summary(max_correlation_lag_happiness_df$Lag_Value)
+      hist(max_correlation_lag_happiness_df$Lag_Value)
+  
+      
+      summary(max_correlation_lag_sadness_df$Lag_Value)
+      hist(max_correlation_lag_sadness_df$Lag_Value)
+      
+      
+      
